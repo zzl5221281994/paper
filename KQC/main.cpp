@@ -1,5 +1,9 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
+#include <QtQml>
+#include <QtCore>
+
+#include "startupmanager.h"
 
 int main(int argc, char *argv[])
 {
@@ -7,7 +11,10 @@ int main(int argc, char *argv[])
 
     QGuiApplication app(argc, argv);
 
+    StartupManager*startupManager=new StartupManager();
+
     QQmlApplicationEngine engine;
+    engine.rootContext()->setContextProperty("startupManager",startupManager);
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
     if (engine.rootObjects().isEmpty())
         return -1;

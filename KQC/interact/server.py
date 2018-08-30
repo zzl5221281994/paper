@@ -1,4 +1,4 @@
-from SimpleXMLRPCServer import SimpleXMLRPCServer   
+from xmlrpc.server import SimpleXMLRPCServer
 from multiprocessing import Process, Queue
 import subprocess
 import stating
@@ -6,17 +6,16 @@ import threading
 
 currentState=stating.halt
 
-def respon_string(str):
-    return "get string :%s"%str
+def startClient(str):
+    return "start suc :%s"%str
 
 def execute(cmd):
 	p=subprocess.Popen(cmd,shell=False,stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 	while p.poll() is None:
-		line = p.stdout.readline()
-		print line
+		line = p.stdout.readline()[0:-2]
+		print(line)
 		global currentState
-		currentState=line[0:-1].split(" ")[1]
-		
+		currentState=str(line)[1:-1].split(" ")[1]
 	if p.returncode==0:
 		return "exec suc"
 	else:
@@ -35,5 +34,6 @@ if __name__ == '__main__':
 	s = SimpleXMLRPCServer(('0.0.0.0', 23675))
 	s.register_function(run_cmd1,"run_cmd")
 	s.register_function(getState,"getState")
+	s.register_function(startClient,"startClient")
 	#s.register_function(runningState1,"runningState")
 	s.serve_forever()
