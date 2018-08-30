@@ -3,6 +3,10 @@
 
 StartupManager::StartupManager(QObject *parent):QObject(parent)
 {
+    fetchStatusTimer=new QTimer;
+    fetchStatusTimer->setInterval(2000);
+    QObject::connect(fetchStatusTimer,SIGNAL(timeout()),this,SLOT(fetchServerRunningStatus()));
+
     toolProcess=new QProcess;
     QStringList toolArgument;
     toolArgument<<"client.py";
@@ -11,6 +15,7 @@ StartupManager::StartupManager(QObject *parent):QObject(parent)
     QObject::connect(toolProcess,SIGNAL(readyReadStandardOutput()),this,SLOT(readyReadStdout()));
     QObject::connect(toolProcess,SIGNAL(readyReadStandardError()),this,SLOT(readyReadStderr()));
     toolProcess->start("python.exe",toolArgument);
+    fetchStatusTimer->start();
 }
 
 StartupManager::~StartupManager()
@@ -27,11 +32,21 @@ void StartupManager::startTool()
 void StartupManager::readyReadStderr()
 {
     qDebug()<<__FUNCTION__<<endl;
-    qDebug()<<toolProcess->readAll();
+
 }
 
 void StartupManager::readyReadStdout()
 {
     qDebug()<<__FUNCTION__<<endl;
-    qDebug()<<toolProcess->readAll();
+    QByteArray res=toolProcess->readAll();
+    res=res.left(res.length()-2);
+    QString status=QString::fromStdString(res.toStdString());
+    qDebug()<<status<<endl;
+    emit updateCurrentRunningStatus(status);
+}
+
+void StartupManager::fetchServerRunningStatus()
+{
+    qDebug()<<__FUNCTION__<<endl;
+    toolProcess->write("s.getState\n");
 }
